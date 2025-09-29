@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warframe: Cycles Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <header>
+            <div class="language-switcher">
+                <button class="lang-btn active" data-lang="en">EN</button>
+                <button class="lang-btn" data-lang="ru">RU</button>
+            </div>
+            
+            <h1 data-i18n="title">⏰ Warframe Cycles Panel</h1>
+            <div class="last-update" id="last-update" data-i18n="lastUpdate">Last update: --:--:--</div>
+            <div class="sync-status" id="sync-status">
+                <i class="fas fa-sync-alt"></i>
+                <span data-i18n="syncStatus">Synchronized</span>
+            </div>
+        </header>
+
+        <div class="content-tabs">
+            <div class="content-tab cycles active" data-tab="cycles" data-i18n="cyclesTab">World Cycles</div>
+            <div class="content-tab" data-tab="baro" data-i18n="baroTab">Baro Ki'Teer</div>
+            <div class="content-tab" data-tab="events" data-i18n="eventsTab">Events & Alerts</div>
+            <div class="content-tab" data-tab="status" data-i18n="statusTab">Warframe Status</div>
+        </div>
+
+        <!-- World Cycles Section -->
+        <div class="content-section cycles active" id="cycles-section">
+            <div class="platform-switcher" id="platform-switcher">
+                <button class="platform-btn pc active" data-platform="pc">
+                    <i class="fab fa-windows"></i> <span data-i18n="platformPc">PC</span>
+                </button>
+                <button class="platform-btn ps" data-platform="ps4">
+                    <i class="fab fa-playstation"></i> <span data-i18n="platformPs">PlayStation</span>
+                </button>
+                <button class="platform-btn xb" data-platform="xb1">
+                    <i class="fab fa-xbox"></i> <span data-i18n="platformXb">Xbox</span>
+                </button>
+                <button class="platform-btn sw" data-platform="swi">
+                    <i class="fas fa-gamepad"></i> <span data-i18n="platformSw">Switch</span>
+                </button>
+            </div>
+
+            <div class="worlds-grid" id="worlds-grid">
+                <!-- Worlds will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Baro Ki'Teer Section -->
+        <div class="content-section" id="baro-section">
+            <div class="baro-card">
+                <h2>👳 <span data-i18n="baroTitle">Baro Ki'Teer</span></h2>
+                <div class="status-container">
+                    <div id="baro-status" class="status">Loading...</div>
+                    <div id="baro-timer" class="timer baro-timer">--:--:--</div>
+                    <div id="baro-change-time" class="change-time" data-i18n="arrivalTime">Arrival: --:--</div>
+                </div>
+                <div class="baro-info">
+                    <div class="baro-location">
+                        <h3>📍 <span data-i18n="baroLocation">Current Location</span></h3>
+                        <div id="baro-location">Loading...</div>
+                    </div>
+                    <div class="baro-inventory">
+                        <h3>🛍️ <span data-i18n="baroInventory">Inventory</span></h3>
+                        <div id="baro-inventory">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Events Section -->
+        <div class="content-section" id="events-section">
+            <div class="events-card">
+                <h2>⚠️ <span data-i18n="eventsTitle">Events & Alerts</span></h2>
+                <div class="events-list">
+                    <div class="event-item">
+                        <h3>🔔 <span data-i18n="alertsTitle">Alerts</span></h3>
+                        <div id="alerts-list" class="event-items">Loading alerts...</div>
+                    </div>
+                    <div class="event-item">
+                        <h3>🎯 <span data-i18n="eventsListTitle">Active Events</span></h3>
+                        <div id="events-list" class="event-items">Loading events...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Section -->
+        <div class="content-section" id="status-section">
+            <div class="status-card">
+                <h2>🔧 <span data-i18n="statusTitle">Warframe Status</span></h2>
+                <div class="status-info">
+                    <div class="status-item">
+                        <h3>🌐 <span data-i18n="platformStatusTitle">Platform Status</span></h3>
+                        <div id="platform-status" class="status-items">
+                            <div>PC: <span class="status-indicator status-online">Online</span></div>
+                            <div>PlayStation: <span class="status-indicator status-online">Online</span></div>
+                            <div>Xbox: <span class="status-indicator status-online">Online</span></div>
+                            <div>Switch: <span class="status-indicator status-online">Online</span></div>
+                        </div>
+                    </div>
+                    <div class="status-item">
+                        <h3>📢 <span data-i18n="newsTitle">Latest News</span></h3>
+                        <div id="news-list" class="status-items">Loading news...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load JavaScript files -->
+    <script src="js/localization.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
