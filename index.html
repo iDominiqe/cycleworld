@@ -368,7 +368,6 @@
             height: 100px;
             border-radius: 50%;
             border: 2px dashed rgba(255, 255, 255, 0.3);
-            transition: transform 1s linear;
             transform-style: preserve-3d;
         }
         
@@ -384,8 +383,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: color 0.5s ease, transform 0.5s ease;
+            transition: all 0.5s ease;
             transform-style: preserve-3d;
+            transform-origin: center;
         }
         
         .cycle-transition {
@@ -410,6 +410,13 @@
         .cycle-transition.active {
             opacity: 1;
             visibility: visible;
+            animation: fadeInOut 2s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
         }
         
         .status-container {
@@ -482,8 +489,8 @@
         .progress {
             height: 100%;
             border-radius: 3px;
-            transition: width 1s linear;
             background: linear-gradient(90deg, #4ecdc4, #45b7d1);
+            transition: width 0.5s ease;
         }
 
         .baro-card, .events-card, .status-card {
@@ -1034,6 +1041,16 @@
 
     // Глобальные переменные
     const API_BASE = 'https://api.warframestat.us/';
+    
+    // Список CORS прокси для обхода блокировки
+    const CORS_PROXIES = [
+        'https://api.allorigins.win/raw?url=',
+        'https://corsproxy.io/?',
+        'https://cors-anywhere.herokuapp.com/',
+        '' // Прямой запрос (последняя попытка)
+    ];
+    
+    let currentProxyIndex = 0;
     let currentLang = 'en';
     let currentPlatform = 'pc';
     let countdownInterval;
@@ -1041,6 +1058,45 @@
     let worldData = {};
     let baroData = {};
     let lastServerTime = Date.now();
+    let previousStates = {};
+
+    // Функция для получения данных через CORS прокси
+    async function fetchWithProxy(url) {
+        const proxy = CORS_PROXIES[currentProxyIndex];
+        const targetUrl = proxy + encodeURIComponent(url);
+        
+        try {
+            console.log(`Пробуем прокси: ${proxy}`);
+            const response = await fetch(targetUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                },
+                mode: 'cors'
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log(`Успешно через прокси: ${proxy}`);
+            return data;
+            
+        } catch (error) {
+            console.log(`Прокси ${proxy} не работает:`, error.message);
+            
+            // Пробуем следующую прокси
+            currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
+            
+            if (currentProxyIndex === 0) {
+                throw new Error('Все прокси не работают. Проверьте интернет соединение.');
+            }
+            
+            // Рекурсивно пробуем следующую прокси
+            return fetchWithProxy(url);
+        }
+    }
 
     // Функция смены языка
     function setLanguage(lang) {
@@ -1092,9 +1148,8 @@
             `${translations[currentLang].lastUpdate} ${timeString}`;
     }
 
-    // Функция форматирования времени для миров (24-часовой формат) - ИСПРАВЛЕНА
+    // Функция форматирования времени для миров (24-часовой формат)
     function formatWorldTime(seconds) {
-        // Округляем до целых секунд и убеждаемся, что это целое число
         const totalSeconds = Math.floor(seconds);
         const hours = Math.floor(totalSeconds / 3600);
         const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -1102,9 +1157,8 @@
         return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     }
 
-    // Функция форматирования времени для Baro (дни:часы:минуты:секунды) - ИСПРАВЛЕНА
+    // Функция форматирования времени для Baro (дни:часы:минуты:секунды)
     function formatBaroTime(seconds) {
-        // Округляем до целых секунд и убеждаемся, что это целое число
         const totalSeconds = Math.floor(seconds);
         const days = Math.floor(totalSeconds / 86400);
         const hours = Math.floor((totalSeconds % 86400) / 3600);
@@ -1124,13 +1178,13 @@
         const changeTimeElement = document.getElementById(`${world}-change-time`);
         const progressElement = document.getElementById(`${world}-progress`);
         const orbiterElement = document.getElementById(`${world}-orbiter`);
+        const orbitElement = document.getElementById(`${world}-orbit`);
         
         if (statusElement) {
             statusElement.textContent = data.status;
         }
         
         if (timerElement) {
-            // Убеждаемся, что время корректно отформатировано
             timerElement.textContent = formatWorldTime(data.timeLeft);
             timerElement.classList.remove('warning', 'critical');
             
@@ -1154,6 +1208,16 @@
         
         if (orbiterElement) {
             orbiterElement.textContent = data.orbiter;
+            
+            // Анимация вращения орбитера
+            const rotation = (360 * (1 - data.timeLeft / data.totalTime));
+            orbiterElement.style.transform = `rotate(${rotation}deg)`;
+        }
+        
+        // Анимация вращения орбиты
+        if (orbitElement) {
+            const rotation = (360 * (1 - data.timeLeft / data.totalTime));
+            orbitElement.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
         }
     }
 
@@ -1196,6 +1260,27 @@
         }
     }
 
+    // Функция анимации смены цикла
+    function animateCycleChange(world) {
+        const transitionElement = document.getElementById(`${world}-transition`);
+        const orbiterElement = document.getElementById(`${world}-orbiter`);
+        
+        if (transitionElement && orbiterElement) {
+            // Показываем анимацию смены цикла
+            transitionElement.classList.add('active');
+            
+            // Анимация вращения орбитера
+            orbiterElement.style.transform = 'scale(1.5) rotate(180deg)';
+            orbiterElement.style.transition = 'all 0.5s ease';
+            
+            // Через 2 секунды скрываем анимацию и возвращаем орбитер в нормальное состояние
+            setTimeout(() => {
+                transitionElement.classList.remove('active');
+                orbiterElement.style.transform = 'scale(1) rotate(0deg)';
+            }, 2000);
+        }
+    }
+
     // Функция обновления динамического контента после смены языка
     function updateDynamicContent() {
         // Обновляем статусы миров
@@ -1229,7 +1314,7 @@
             ];
             
             const requests = endpoints.map(endpoint => 
-                fetch(`${API_BASE}${platform}/${endpoint}`).then(res => res.json())
+                fetchWithProxy(`${API_BASE}${platform}/${endpoint}`)
             );
             
             const [earth, cetus, vallis, cambion, duviri, zariman, baro] = await Promise.all(requests);
@@ -1317,7 +1402,6 @@
             const activationTime = new Date(baro.activation).getTime();
             const expiryTime = new Date(baro.expiry).getTime();
             
-            // Убеждаемся, что время - целое число
             baroData = {
                 isHere: baro.active,
                 timeLeft: Math.floor(baro.active ? Math.max(0, (expiryTime - now) / 1000) : Math.max(0, (activationTime - now) / 1000)),
@@ -1349,21 +1433,28 @@
     function processWorldData(world, data, config) {
         const now = Date.now();
         const expiryTime = new Date(data.expiry).getTime();
-        // Убеждаемся, что время - целое число
         const timeLeft = Math.floor(Math.max(0, (expiryTime - now) / 1000));
         
-        let status, orbiter;
+        let status, orbiter, currentState;
         
         if (config.state) {
             // Для миров с состояниями (Duviri, Zariman)
             const stateKey = data.state.toLowerCase();
             status = config.statusMap[stateKey] || data.state;
             orbiter = config.orbiterMap[stateKey] || '❓';
+            currentState = stateKey;
         } else {
             // Для миров с день/ночь
             status = config.isDay ? config.dayStatus : config.nightStatus;
             orbiter = config.isDay ? config.dayOrbiter : config.nightOrbiter;
+            currentState = config.isDay ? 'day' : 'night';
         }
+        
+        // Проверяем смену состояния для анимации
+        if (previousStates[world] && previousStates[world] !== currentState) {
+            animateCycleChange(world);
+        }
+        previousStates[world] = currentState;
         
         // Переводим статус если язык русский
         if (currentLang === 'ru') {
@@ -1400,7 +1491,6 @@
         // Обновляем время миров
         for (const world in worldData) {
             if (worldData[world].timeLeft > 0) {
-                // Корректируем время на основе разницы с сервером и убеждаемся, что оно целое
                 worldData[world].timeLeft = Math.max(0, worldData[world].timeLeft - 1);
                 updateWorldDisplay(world, worldData[world]);
             }
@@ -1499,8 +1589,8 @@
         // Запускаем обновление времени каждую секунду
         countdownInterval = setInterval(updateCountdowns, 1000);
         
-        // Синхронизируем с сервером каждые 15 секунд
-        syncInterval = setInterval(fetchAPIData, 15000);
+        // Синхронизируем с сервером каждые 30 секунд
+        syncInterval = setInterval(fetchAPIData, 30000);
         
         // Обновляем события и статус
         updateEventsData();
