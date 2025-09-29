@@ -170,21 +170,21 @@ header h1 {
     background: rgba(0, 170, 255, 0.1);
 }
 
-.content-tab.active.baro {
+.content-tab.active[data-tab="baro"] {
     border-color: var(--accent-baro);
     color: var(--accent-baro);
     box-shadow: 0 0 15px var(--accent-baro);
     background: rgba(255, 170, 0, 0.1);
 }
 
-.content-tab.active.events {
+.content-tab.active[data-tab="events"] {
     border-color: var(--accent-events);
     color: var(--accent-events);
     box-shadow: 0 0 15px var(--accent-events);
     background: rgba(255, 107, 157, 0.1);
 }
 
-.content-tab.active.status {
+.content-tab.active[data-tab="status"] {
     border-color: var(--accent-status);
     color: var(--accent-status);
     box-shadow: 0 0 15px var(--accent-status);
