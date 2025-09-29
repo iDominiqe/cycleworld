@@ -106,7 +106,6 @@ async function fetchAPIData() {
         const activationTime = new Date(baro.activation).getTime();
         const expiryTime = new Date(baro.expiry).getTime();
         
-        // Убеждаемся, что время - целое число
         baroData = {
             isHere: baro.active,
             timeLeft: Math.floor(baro.active ? Math.max(0, (expiryTime - now) / 1000) : Math.max(0, (activationTime - now) / 1000)),
@@ -138,7 +137,6 @@ async function fetchAPIData() {
 function processWorldData(world, data, config) {
     const now = Date.now();
     const expiryTime = new Date(data.expiry).getTime();
-    // Убеждаемся, что время - целое число
     const timeLeft = Math.floor(Math.max(0, (expiryTime - now) / 1000));
     
     let status, orbiter, currentState;
