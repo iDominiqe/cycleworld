@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setLanguage(savedLang);
     
     // Создаем карточки миров
-    createWorldCards();
+    UI.initWorldCards();
     
     // Обработчики для кнопок языка
     document.querySelectorAll('.lang-btn').forEach(btn => {
@@ -70,53 +70,76 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Синхронизируем с сервером каждые 15 секунд
     syncInterval = setInterval(fetchAPIData, 15000);
-    
-    // Обновляем события и статус
-    updateEventsData();
-    updateStatusData();
 });
 
-// Функция создания карточек миров
-function createWorldCards() {
-    const worldsGrid = document.getElementById('worlds-grid');
-    const worlds = [
-        { id: 'earth', icon: '🌍', titleKey: 'earthTitle', locationKey: 'earthLocation' },
-        { id: 'cetus', icon: '🏜️', titleKey: 'cetusTitle', locationKey: 'cetusLocation' },
-        { id: 'vallis', icon: '🧊', titleKey: 'vallisTitle', locationKey: 'vallisLocation' },
-        { id: 'cambion', icon: '💀', titleKey: 'cambionTitle', locationKey: 'cambionLocation' },
-        { id: 'duviri', icon: '👑', titleKey: 'duviriTitle', locationKey: 'duviriLocation' },
-        { id: 'zariman', icon: '🚀', titleKey: 'zarimanTitle', locationKey: 'zarimanLocation' }
-    ];
-
-    worlds.forEach(world => {
-        const worldCard = document.createElement('div');
-        worldCard.className = `world-card ${world.id}`;
-        worldCard.innerHTML = `
-            <div class="cycle-transition" id="${world.id}-transition" data-i18n="cycleChange">Cycle change...</div>
-            <div>
-                <h2>${world.icon} <span data-i18n="${world.titleKey}">${translations.en[world.titleKey]}</span></h2>
-                <p class="location-name" data-i18n="${world.locationKey}">${translations.en[world.locationKey]}</p>
-            </div>
-            <div>
-                <div class="diagram">
-                    <div class="planet">${world.icon}</div>
-                    <div class="orbit" id="${world.id}-orbit">
-                        <div class="orbiter" id="${world.id}-orbiter">☀️</div>
-                    </div>
-                </div>
-                <div class="status-container">
-                    <div id="${world.id}-status" class="status">Loading...</div>
-                    <div id="${world.id}-timer" class="timer">--:--:--</div>
-                    <div id="${world.id}-change-time" class="change-time" data-i18n="changeTime">Change: --:--</div>
-                </div>
-                <div class="progress-bar">
-                    <div id="${world.id}-progress" class="progress" style="width: 0%"></div>
-                </div>
-            </div>
-        `;
-        worldsGrid.appendChild(worldCard);
-    });
+// Функция обновления отсчетов времени
+function updateCountdowns() {
+    // Обновляем время миров
+    for (const world in worldData) {
+        if (worldData[world].timeLeft > 0) {
+            worldData[world].timeLeft--;
+            UI.updateWorldDisplay(world, worldData[world], currentLang);
+        }
+    }
+    
+    // Обновляем время Baro
+    if (baroData.timeLeft > 0) {
+        baroData.timeLeft--;
+        UI.updateBaroDisplay(baroData, currentLang);
+    }
 }
 
-// Остальные функции (updateWorldDisplay, updateBaroDisplay, animateCycleChange, updateCountdowns и т.д.)
-// ... (все остальные функции из предыдущего кода)
+// Функция анимации смены цикла
+function animateCycleChange(world) {
+    const transitionElement = document.getElementById(`${world}-transition`);
+    if (transitionElement) {
+        transitionElement.classList.add('active');
+        setTimeout(() => {
+            transitionElement.classList.remove('active');
+        }, 2000);
+    }
+}
+
+// Функция обновления времени последнего обновления
+function updateLastUpdateTime() {
+    const now = new Date();
+    const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit', hour12: false});
+    document.getElementById('last-update').textContent = 
+        `${translations[currentLang].lastUpdate} ${timeString}`;
+}
+
+// Функция обновления статуса синхронизации
+function updateSyncStatus(syncing = false) {
+    const syncStatusElement = document.getElementById('sync-status');
+    if (syncStatusElement) {
+        if (syncing) {
+            syncStatusElement.classList.add('syncing');
+            syncStatusElement.innerHTML = `<i class="fas fa-sync-alt"></i> <span data-i18n="syncing">${translations[currentLang].syncing}</span>`;
+        } else {
+            syncStatusElement.classList.remove('syncing');
+            syncStatusElement.innerHTML = `<i class="fas fa-check-circle"></i> <span data-i18n="syncStatus">${translations[currentLang].syncStatus}</span>`;
+        }
+    }
+}
+
+// Функции для событий и статуса (заглушки)
+function updateEventsData() {
+    // Заглушка для событий
+    document.getElementById('alerts-list').innerHTML = '<div class="event-item">No active alerts</div>';
+    document.getElementById('events-list').innerHTML = '<div class="event-item">No active events</div>';
+}
+
+function updateStatusData() {
+    // Заглушка для статуса
+    document.getElementById('news-list').innerHTML = '<div class="status-item">Loading news...</div>';
+}
+
+// Обновляем отображение миров
+function updateWorldDisplay(world, data) {
+    UI.updateWorldDisplay(world, data, currentLang);
+}
+
+// Обновляем отображение Baro
+function updateBaroDisplay(data) {
+    UI.updateBaroDisplay(data, currentLang);
+}
